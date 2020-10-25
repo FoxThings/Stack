@@ -15,24 +15,24 @@
 int main()
 {
     stack_int stk = {};
-    stackCtor_int(&stk, 2);
-    stackPush_int(&stk, 10);
-    stackPush_int(&stk, 40);
+    StackCtor_int(&stk, 2);
+    StackPush_int(&stk, 10);
+    StackPush_int(&stk, 40);
 
-    int val = stackPop_int(&stk);
+    int val = StackPop_int(&stk);
     printf("%d\n", val);
 
-    stackDtor_int(&stk);
+    StackDtor_int(&stk);
 
     stack_double stk2 = {};
-    stackCtor_double(&stk2, 5);
-    stackPush_double(&stk2, 0.5);
-    stackPush_double(&stk2, 58.78);
+    StackCtor_double(&stk2, 5);
+    StackPush_double(&stk2, 0.5);
+    StackPush_double(&stk2, 58.78);
 
-    double val2 = stackPop_double(&stk2);
+    double val2 = StackPop_double(&stk2);
     printf("%lg\n", val2);
 
-    stackDtor_double(&stk2);
+    StackDtor_double(&stk2);
 
     return 0;
 }

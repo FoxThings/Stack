@@ -19,7 +19,7 @@ typedef struct TEMPLATE(stack, STACK_TEMPLATE_TYPE)    TEMPLATE(stack, STACK_TEM
     @version 1.0
     @authors Zvezdin Nikita
 */
-void TEMPLATE(stackCtor, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk, stack_t cap);
+void TEMPLATE(StackCtor, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk, stack_t cap);
 
 /*!
     sackDtor_[type] destructs stack
@@ -27,7 +27,7 @@ void TEMPLATE(stackCtor, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TY
     @version 1.0
     @authors Zvezdin Nikita
 */
-void TEMPLATE(stackDtor, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk);
+void TEMPLATE(StackDtor, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk);
 
 /*!
     stackExpand_[type] expands stack
@@ -35,7 +35,7 @@ void TEMPLATE(stackDtor, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TY
     @version 1.0
     @authors Zvezdin Nikita
 */
-void TEMPLATE(stackExpand, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk);
+void TEMPLATE(StackExpand, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk);
 
 /*!
     stackPush_[type] pushes a new element in stack
@@ -44,7 +44,7 @@ void TEMPLATE(stackExpand, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_
     @version 1.0
     @authors Zvezdin Nikita
 */
-void TEMPLATE(stackPush, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk, STACK_TEMPLATE_TYPE val);
+void TEMPLATE(StackPush, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk, STACK_TEMPLATE_TYPE val);
 
 /*!
     stackPop_[type] returns last element of stack
@@ -53,7 +53,7 @@ void TEMPLATE(stackPush, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TY
     @version 1.0
     @authors Zvezdin Nikita
 */
-STACK_TEMPLATE_TYPE TEMPLATE(stackPop, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk);
+STACK_TEMPLATE_TYPE TEMPLATE(StackPop, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk);
 
 // Generate stack with destination type
 #include "stack.c"

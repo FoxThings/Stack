@@ -10,11 +10,13 @@
 
 typedef struct TEMPLATE(stack, STACK_TEMPLATE_TYPE)    TEMPLATE(stack, STACK_TEMPLATE_TYPE);
 
+
+// define for verification of stack
 #ifdef STACK_VERIFY_PROTECT
-#define VERIFY_STACK(STACK_TEMPLATE_TYPE)                  \
-    if (stackVerify ## _ ## STACK_TEMPLATE_TYPE (stk) )    \
+#define VERIFY_STACK(T)                                    \
+    if (StackVerify ## _ ## T (stk) )                      \
     {                                                      \
-        stackDamp ## _ ## STACK_TEMPLATE_TYPE (stk);       \
+        StackDamp ## _ ## T (stk);                         \
         assert(!"Something happened");                     \
     }
 
@@ -23,15 +25,17 @@ typedef struct TEMPLATE(stack, STACK_TEMPLATE_TYPE)    TEMPLATE(stack, STACK_TEM
 #define VERIFY(T)
 #endif // STACK_VERIFY_PROTECT
 
+
+// Stack struct
 struct TEMPLATE(stack, STACK_TEMPLATE_TYPE)
 {
 #ifdef STACK_CANARY_PROTECT
     canary   CANARY_START;
 #endif // STACK_CANARY_PROTECT
 
-    stack_t   capacity;
-    int      current;
-    STACK_TEMPLATE_TYPE* data;
+    stack_t               capacity;
+    int                   current;
+    STACK_TEMPLATE_TYPE*  data;
 
 #ifdef STACK_HASHSUM_PROTECT
     stack_t   hashSum;
@@ -43,10 +47,10 @@ struct TEMPLATE(stack, STACK_TEMPLATE_TYPE)
 
 };
 
-// ---- Debug instruments ----
+// --------------- Debug instruments ---------------
 
 #ifdef STACK_CANARY_PROTECT
-canary* TEMPLATE(getStartCanary,T) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
+canary* TEMPLATE(GetStartCanary,T) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
 {
     assert(stk != NULL);
     assert(stk->data != NULL);
@@ -56,7 +60,7 @@ canary* TEMPLATE(getStartCanary,T) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
     return (canary*) temp;
 }
 
-canary* TEMPLATE(getEndCanary, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
+canary* TEMPLATE(GetEndCanary, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
 {
     assert(stk != NULL);
     assert(stk->data != NULL);
@@ -67,44 +71,48 @@ canary* TEMPLATE(getEndCanary, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPL
 }
 #endif // STACK_CANARY_PROTECT
 
+
 #ifdef STACK_HASHSUM_PROTECT
-stack_t TEMPLATE(hashSum, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
+stack_t TEMPLATE(HashSum, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
 {
-    assert(stk != NULL);
-    assert(stk->data != NULL);
+    stack_t i;
+    stack_t h = 5381;
 
-    stack_t count = sizeof(canary) * 2 + sizeof(STACK_TEMPLATE_TYPE) * stk->capacity;
-    stack_t sum = 0;
+#ifdef STACK_CANARY_PROTECT
+    stack_t stkLen = sizeof(canary) * 2 + sizeof(STACK_TEMPLATE_TYPE) * stk->capacity;
+#else
+    stack_t stkLen = sizeof(STACK_TEMPLATE_TYPE) * stk->capacity;
+#endif // STACK_CANARY_PROTECT
 
-    char* temp = (char*) stk->data;
-    temp -= sizeof(canary);
-
-    for (stack_t i = 1; i <= count; ++i)
+    for (i = 0; i < stkLen; ++i)
     {
-        sum += temp[i-1] * i;
+        h += (h << 5) + ((char*)stk->data)[i];
     }
 
-    return sum;
+    return h;
 }
 #endif // STACK_HASHSUM_PROTECT
 
+
 #ifdef STACK_VERIFY_PROTECT
-int TEMPLATE(stackVerify, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
+int TEMPLATE(StackVerify, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
 {
     if (stk == NULL)
         return NOT_A_STACK;
-    else if (stk->data == NULL)
+    if (stk->data == NULL)
         return MEM_NOT_FOUND;
+    if (stk->current < 0 || stk->current > stk->capacity)
+        return OVERFLOW;
+
 #ifdef STACK_CANARY_PROTECT
-    else if (*TEMPLATE(getStartCanary,T) (stk) != CANPROTECT || *TEMPLATE(getEndCanary, STACK_TEMPLATE_TYPE) (stk) != CANPROTECT)
+    if (*TEMPLATE(GetStartCanary,T) (stk) != CANPROTECT || *TEMPLATE(GetEndCanary, STACK_TEMPLATE_TYPE) (stk) != CANPROTECT)
         return CANARY_HEAP_BREAKING;
-    else if (stk->CANARY_START != CANPROTECT || stk->CANARY_END != CANPROTECT)
+    if (stk->CANARY_START != CANPROTECT || stk->CANARY_END != CANPROTECT)
         return CANARY_STACK_BREAKING;
 #endif // STACK_CANARY_PROTECT
-    else if (stk->current < 0 || stk->current > stk->capacity)
-        return OVERFLOW;
+
 #ifdef STACK_HASHSUM_PROTECT
-    else if (stk->hashSum != TEMPLATE(hashSum, STACK_TEMPLATE_TYPE) (stk))
+    if (stk->hashSum != TEMPLATE(HashSum, STACK_TEMPLATE_TYPE) (stk))
         return HASHSUM_ALTERED;
 #endif // STACK_HASHSUM_PROTECT
 
@@ -113,10 +121,11 @@ int TEMPLATE(stackVerify, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_T
 }
 #endif // STACK_VERIFY_PROTECT
 
+
 #ifdef STACK_VERIFY_PROTECT
-void TEMPLATE(stackDamp, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
+void TEMPLATE(StackDamp, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
 {
-    const int errCode = TEMPLATE(stackVerify, STACK_TEMPLATE_TYPE) (stk);
+    const int errCode = TEMPLATE(StackVerify, STACK_TEMPLATE_TYPE) (stk);
     char* error = "";
 
     switch (errCode)
@@ -152,9 +161,11 @@ void TEMPLATE(stackDamp, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TY
 }
 #endif // STACK_VERIFY_PROTECT
 
-// ---- Stack definition ----
 
-void TEMPLATE(stackCtor, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk, stack_t cap)
+// --------------- Stack functions ---------------
+
+// void StackCtor_[type] (stack_[type]* stk, unsigned long long cap)
+void TEMPLATE(StackCtor, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk, stack_t cap)
 {
     assert(stk != NULL);
 
@@ -175,20 +186,20 @@ void TEMPLATE(stackCtor, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TY
     stk->CANARY_START = CANPROTECT;
     stk->CANARY_END = CANPROTECT;
 
-    *TEMPLATE(getStartCanary, STACK_TEMPLATE_TYPE) (stk) = CANPROTECT;
-    *TEMPLATE(getEndCanary, STACK_TEMPLATE_TYPE) (stk) = CANPROTECT;
+    *TEMPLATE(GetStartCanary, STACK_TEMPLATE_TYPE) (stk) = CANPROTECT;
+    *TEMPLATE(GetEndCanary, STACK_TEMPLATE_TYPE) (stk) = CANPROTECT;
 #endif // STACK_CANARY_PROTECT
 
 #ifdef STACK_HASHSUM_PROTECT
-    stk->hashSum = TEMPLATE(hashSum, STACK_TEMPLATE_TYPE) (stk);
+    stk->hashSum = TEMPLATE(HashSum, STACK_TEMPLATE_TYPE) (stk);
 #endif // STACK_HASHSUM_PROTECT
-
     VERIFY(STACK_TEMPLATE_TYPE)
 
     return;
 }
 
-void TEMPLATE(stackDtor, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
+// void StackDtor_[type] (stack_[type]* stk)
+void TEMPLATE(StackDtor, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
 {
     assert(stk != NULL);
     assert(stk->data != NULL);
@@ -208,7 +219,8 @@ void TEMPLATE(stackDtor, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TY
     return;
 }
 
-void TEMPLATE(stackExpand, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
+// void StackExpand_[type] (stack_[type]* stk)
+void TEMPLATE(StackExpand, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
 {
     assert(stk != NULL);
     assert(stk->data != NULL);
@@ -216,7 +228,7 @@ void TEMPLATE(stackExpand, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_
     VERIFY(STACK_TEMPLATE_TYPE)
 
 #ifdef STACK_CANARY_PROTECT
-    *TEMPLATE(getEndCanary, STACK_TEMPLATE_TYPE) (stk) = 0;
+    *TEMPLATE(GetEndCanary, STACK_TEMPLATE_TYPE) (stk) = 0;
 
     char* temp = (char*)stk->data;
     temp -= sizeof(canary);
@@ -228,21 +240,24 @@ void TEMPLATE(stackExpand, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_
     temp += sizeof(canary);
     stk->data = (T*) temp;
 
-    *TEMPLATE(getStartCanary, STACK_TEMPLATE_TYPE) (stk) = CANPROTECT;
-    *TEMPLATE(getEndCanary, STACK_TEMPLATE_TYPE) (stk) = CANPROTECT;
+    *TEMPLATE(GetStartCanary, STACK_TEMPLATE_TYPE) (stk) = CANPROTECT;
+    *TEMPLATE(GetEndCanary, STACK_TEMPLATE_TYPE) (stk) = CANPROTECT;
 #else
     stk->capacity *= 2;
     stk->data = (STACK_TEMPLATE_TYPE*) realloc(stk->data, stk->capacity * sizeof(STACK_TEMPLATE_TYPE));
 #endif // STACK_CANARY_PROTECT
 
 #ifdef STACK_HASHSUM_PROTECT
-    stk->hashSum = TEMPLATE(hashSum, STACK_TEMPLATE_TYPE) (stk);
+    stk->hashSum = TEMPLATE(HashSum, STACK_TEMPLATE_TYPE) (stk);
 #endif // STACK_HASHSUM_PROTECT
 
     VERIFY(STACK_TEMPLATE_TYPE)
+
+    return;
 }
 
-void TEMPLATE(stackPush, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk, STACK_TEMPLATE_TYPE val)
+// void StackPush_[type] (stack_[type]* stk, [type] val)
+void TEMPLATE(StackPush, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk, STACK_TEMPLATE_TYPE val)
 {
     assert(stk != NULL);
     assert(stk->data != NULL);
@@ -250,18 +265,21 @@ void TEMPLATE(stackPush, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TY
     VERIFY(STACK_TEMPLATE_TYPE)
 
     if (stk->current == stk->capacity)
-        TEMPLATE(stackExpand, STACK_TEMPLATE_TYPE) (stk);
+        TEMPLATE(StackExpand, STACK_TEMPLATE_TYPE) (stk);
 
     stk->data[stk->current++] = val;
 
 #ifdef STACK_HASHSUM_PROTECT
-    stk->hashSum = TEMPLATE(hashSum, STACK_TEMPLATE_TYPE) (stk);
+    stk->hashSum = TEMPLATE(HashSum, STACK_TEMPLATE_TYPE) (stk);
 #endif // STACK_HASHSUM_PROTECT
 
     VERIFY(STACK_TEMPLATE_TYPE)
+
+    return;
 }
 
-STACK_TEMPLATE_TYPE TEMPLATE(stackPop, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
+// [type] StackPop_[type] (stack_[type]* stk)
+STACK_TEMPLATE_TYPE TEMPLATE(StackPop, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STACK_TEMPLATE_TYPE)* stk)
 {
     assert(stk != NULL);
     assert(stk->data != NULL);
@@ -271,7 +289,7 @@ STACK_TEMPLATE_TYPE TEMPLATE(stackPop, STACK_TEMPLATE_TYPE) (TEMPLATE(stack, STA
     STACK_TEMPLATE_TYPE ret = stk->data[--stk->current];
 
 #ifdef STACK_HASHSUM_PROTECT
-    stk->hashSum = TEMPLATE(hashSum, STACK_TEMPLATE_TYPE) (stk);
+    stk->hashSum = TEMPLATE(HashSum, STACK_TEMPLATE_TYPE) (stk);
 #endif // STACK_HASHSUM_PROTECT
 
     VERIFY(STACK_TEMPLATE_TYPE)
