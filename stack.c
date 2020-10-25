@@ -10,7 +10,6 @@
 
 typedef struct TEMPLATE(stack, STACK_TEMPLATE_TYPE)    TEMPLATE(stack, STACK_TEMPLATE_TYPE);
 
-
 // define for verification of stack
 #ifdef STACK_VERIFY_PROTECT
 #define VERIFY_STACK(T)                                    \
@@ -24,7 +23,6 @@ typedef struct TEMPLATE(stack, STACK_TEMPLATE_TYPE)    TEMPLATE(stack, STACK_TEM
 #else
 #define VERIFY(T)
 #endif // STACK_VERIFY_PROTECT
-
 
 // Stack struct
 struct TEMPLATE(stack, STACK_TEMPLATE_TYPE)
@@ -44,7 +42,6 @@ struct TEMPLATE(stack, STACK_TEMPLATE_TYPE)
 #ifdef STACK_CANARY_PROTECT
     canary   CANARY_END;
 #endif // STACK_CANARY_PROTECT
-
 };
 
 // --------------- Debug instruments ---------------
